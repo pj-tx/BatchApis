@@ -46,6 +46,8 @@ class BatchViewSet(viewsets.ViewSet):
 
         query = request.query_params.copy() or {}
 
+        # query['is_deleted'] = False
+
         if "id" in query:
             query = {"_id" : ObjectId(query.get("id"))}
 
@@ -57,7 +59,7 @@ class BatchViewSet(viewsets.ViewSet):
             serializer = BatchSerializer(jobs, many=True)
             return Response(data=serializer.data, status=201)
         else:
-            return Response(data={"status": "failed", "status_code": "400", "error_code": "TA8001", "errors": {"field":"","message":"No Documents Found"}}, status=404)
+            return Response(data={}, status=200)
 
     def create(self, request):
         print("Posting Started")
@@ -104,20 +106,22 @@ class BatchViewSet(viewsets.ViewSet):
                 s3_key = f"{dt_string}-{data['batch_name']}-{data['uploaded_by']}.{file_extension}".replace(" ", "")
 
                 # Upload file to S3
+                s3_bucket = "batchuploadtest"
                 try:
-                    response = s3.upload_fileobj(file, "batchuploadtest", s3_key)
+                    response = s3.upload_fileobj(file, s3_bucket, s3_key)
                 except ClientError as e:
                     print("error occured")
                     print(e)
                     return Response(data={"status": "failed", "status_code": "400", "error_code": "TA8001", "errors": {"field":"","message":e}}, status=404)
 
                 # Create S3 URL
-                s3_url = f"https://batchuploadtest.s3.amazonaws.com/{s3_key}"
+                s3_url = f"https://{s3_bucket}.s3.amazonaws.com/{s3_key}"
 
                 data.pop('file')
                 data["s3_url"]= s3_url
                 json_data = json.dumps(data)
                 jaon_data = json.loads(json_data)
+
 
                 print(jaon_data)
 
@@ -140,16 +144,16 @@ class ForiegnFields(APIView):
         query = request.query_params.copy() or {}
 
         if "id" in query:
-            query = {"jd_id" : str(query.get("id"))}
+            query = {"job_id" : str(query.get("id"))}
             assess_collection = data_db("jd_assessments") 
             jobs = assess_collection.find(query)
 
         else:
             collection = jdclient() 
-            jobs = collection.find({}, {"_id": 1, "title": 1})
+            jobs = collection.find({"is_deleted": False}, {"_id": 1, "title": 1})
 
         if jobs.count() > 0:
             serializer = BatchSerializer(jobs, many=True)
             return Response(data=serializer.data, status=201)
         else:
-            return Response(data={"status": "failed", "status_code": "400", "error_code": "TA8001", "errors": {"field":"","message":"No Documents Found"}}, status=404)
+            return Response(data={}, status=200)

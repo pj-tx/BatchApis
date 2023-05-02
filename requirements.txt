@@ -19,3 +19,4 @@ python_dotenv==1.0.0
 django-cors-headers==3.14.0
 python-magic==0.4.27
 python-magic-bin==0.4.14
+boto3==1.26.96
