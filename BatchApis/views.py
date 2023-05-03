@@ -24,7 +24,21 @@ import magic
 import boto3
 from botocore.exceptions import ClientError
 
-s3 = boto3.client('s3',aws_access_key_id="AKIAS6NGRAVA3BO2OIP5",aws_secret_access_key="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",region_name="ap-south-1")
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_KEY_ID = os.getenv('AWS_SECRET_KEY_ID')
+AWS_REGION = os.getenv('AWS_REGION')
+S3_BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
+
+# print("Aws assess")
+# print(AWS_ACCESS_KEY_ID)
+# print("Aws Secret")
+# print(AWS_SECRET_KEY_ID)
+
+s3 = boto3.client('s3',aws_access_key_id=AWS_ACCESS_KEY_ID,aws_secret_access_key=AWS_SECRET_KEY_ID,region_name=AWS_REGION)
 
 
 # def validate_file(value):
@@ -106,7 +120,7 @@ class BatchViewSet(viewsets.ViewSet):
                 s3_key = f"{dt_string}-{data['batch_name']}-{data['uploaded_by']}.{file_extension}".replace(" ", "")
 
                 # Upload file to S3
-                s3_bucket = "batchuploadtest"
+                s3_bucket = S3_BUCKET_NAME
                 try:
                     response = s3.upload_fileobj(file, s3_bucket, s3_key)
                 except ClientError as e:
